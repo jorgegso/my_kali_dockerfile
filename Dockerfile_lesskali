@@ -1,4 +1,4 @@
-#
+# docker run --rm -it -v local_storage:/imagen_storege --name name_imagen id_imagen /bin/zsh
 FROM kalilinux/kali-rolling:latest
 LABEL jsg <hajorge2012@gmail.com>
 
@@ -9,6 +9,9 @@ RUN apt-get -y update && apt-get -y dist-upgrade && apt-get -y autoremove && apt
 WORKDIR /root
 RUN mkdir ${HOME}/tools && \
   mkdir -p /usr/share/wordlists
+
+# Temporary solution, it is not safe, create a base password. Change it or use another way
+RUN echo "root:root" | chpasswd
 
 # Install Essentials
 RUN apt-get install -y \
@@ -34,8 +37,6 @@ RUN apt-get install -y \
   snmp \ 
   sslscan 
 
-#config nvim 
-
 ## Basic Tools installation
 RUN apt-get install -y \
   rlwrap\
@@ -59,26 +60,26 @@ RUN apt-get install -y \
   cewl \
   openssh-server \
   gcc \
-  powerline
+  powerline \
+  man-db
 
-
-## zsh
-RUN git clone https://github.com/robbyrussell/oh-my-zsh.git ~/.oh-my-zsh && \
-  cp ~/.oh-my-zsh/templates/zshrc.zsh-template ~/.zshrc && \
-  chsh -s /bin/zsh && \
-  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "$HOME/.zsh-syntax-highlighting" --depth 1 && \
-  echo "source $HOME/.zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> "$HOME/.zshrc"
-
-WORKDIR ${HOME}/tools
-CMD /bin/zsh
-
-
+## non-root config
 RUN adduser --home /home/test test
 RUN usermod -a -G sudo test
 RUN chsh -s /bin/zsh test
+# Temporary solution, it is not safe, create a base password. Change it or use another way
+RUN echo "test:test" | chpasswd
 
-
-USER test
-
+## zsh
 WORKDIR /home/test
+RUN git clone https://github.com/robbyrussell/oh-my-zsh.git /home/test/.oh-my-zsh && \
+  cp /home/test/.oh-my-zsh/templates/zshrc.zsh-template /home/test/.zshrc && \
+  chsh -s /bin/zsh && \
+  git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "/home/test/.zsh-syntax-highlighting" --depth 1 && \
+  echo "source /home/test/.zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" >> "/home/test/.zshrc"
 
+RUN sed -i '38c\HISTFILE="/laMaquinaLocal/.zsh_history"' /home/test/.zshrc
+RUN sed -i '1i export HISTFILE="/laMaquinaLocal/.zsh_history"' /home/test/.zshrc
+
+CMD /bin/zsh
+USER test
