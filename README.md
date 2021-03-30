@@ -7,4 +7,4 @@ To-do
 - Make a safe network for ctf.
 - Make a non-root user. //completed
 - Ask a new password or/and username went start the image.
-- Make the kali-less dockefile more light and practical for PC with less space.
+- Make the kali-less dockefile more light and practical for PCs with less space.
